@@ -1,0 +1,26 @@
+{
+    "attribute": "tekanan_darah",
+    "branches": {
+        "Tinggi": {
+            "attribute": "detak_jantung",
+            "branches": {
+                "Normal": "Hipertensi/Demam",
+                "Tinggi": "Heat Exhaustion"
+            }
+        },
+        "Normal": {
+            "attribute": "detak_jantung",
+            "branches": {
+                "Normal": "Sehat",
+                "Tinggi": "Takikardia"
+            }
+        },
+        "Rendah": {
+            "attribute": "detak_jantung",
+            "branches": {
+                "Normal": "Hipotensi",
+                "Rendah": "Bradikardia"
+            }
+        }
+    }
+}

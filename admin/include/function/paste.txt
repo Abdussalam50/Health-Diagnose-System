@@ -1,0 +1,248 @@
+<?php
+/**
+ * Class C45DiagnosticSystem
+ * 
+ * Implementasi algoritma C4.5 untuk klasifikasi diagnosa pasien
+ * berdasarkan tekanan darah, detak jantung, dan suhu tubuh.
+ */
+class C45DiagnosticSystem {
+    /**
+     * Data training yang digunakan dalam algoritma
+     * @var array
+     */
+    private $trainingData;
+    
+    /**
+     * Konstruktor kelas
+     */
+    public function __construct() {
+        // Inisialisasi dataset awal
+        $this->trainingData = [
+            [
+                'id' => 1,
+                'tekanan_darah' => '140/90',
+                'tekanan_sistolik' => 140,
+                'detak_jantung' => 85,
+                'suhu_tubuh' => 38.0,
+                'kondisi' => 'Hipertensi, Demam'
+            ],
+            [
+                'id' => 2,
+                'tekanan_darah' => '120/80',
+                'tekanan_sistolik' => 120,
+                'detak_jantung' => 75,
+                'suhu_tubuh' => 37.0,
+                'kondisi' => 'Sehat'
+            ],
+            [
+                'id' => 3,
+                'tekanan_darah' => '100/70',
+                'tekanan_sistolik' => 100,
+                'detak_jantung' => 60,
+                'suhu_tubuh' => 36.5,
+                'kondisi' => 'Hipotensi'
+            ],
+            [
+                'id' => 4,
+                'tekanan_darah' => '90/60',
+                'tekanan_sistolik' => 90,
+                'detak_jantung' => 55,
+                'suhu_tubuh' => 37.2,
+                'kondisi' => 'Bradikardia'
+            ],
+            [
+                'id' => 5,
+                'tekanan_darah' => '110/70',
+                'tekanan_sistolik' => 110,
+                'detak_jantung' => 120,
+                'suhu_tubuh' => 37.5,
+                'kondisi' => 'Takikardia'
+            ],
+            [
+                'id' => 6,
+                'tekanan_darah' => '130/85',
+                'tekanan_sistolik' => 130,
+                'detak_jantung' => 110,
+                'suhu_tubuh' => 38.5,
+                'kondisi' => 'Heat Exhaustion'
+            ]
+        ];
+    }
+    
+    /**
+     * Menghitung entropy dari sebuah dataset
+     * 
+     * @param array $dataset Data yang akan dihitung entropy-nya
+     * @return float Nilai entropy
+     */
+    public function calculateEntropy($dataset) {
+        $totalData = count($dataset);
+        if ($totalData === 0) {
+            return 0;
+        }
+        
+        // Menghitung jumlah kemunculan setiap kelas
+        $kondisiCounts = [];
+        foreach ($dataset as $data) {
+            $kondisi = $data['kondisi'];
+            if (!isset($kondisiCounts[$kondisi])) {
+                $kondisiCounts[$kondisi] = 0;
+            }
+            $kondisiCounts[$kondisi]++;
+        }
+        
+        // Menghitung entropy
+        $entropy = 0;
+        foreach ($kondisiCounts as $count) {
+            $probability = $count / $totalData;
+            $entropy -= $probability * log($probability, 2);
+        }
+        
+        return $entropy;
+    }
+    
+    /**
+     * Menghitung information gain untuk sebuah atribut
+     * 
+     * @param array $dataset Data yang akan dihitung gain-nya
+     * @param string $attribute Atribut yang akan dihitung gain-nya
+     * @return float Nilai information gain
+     */
+    public function calculateGain($dataset, $attribute) {
+        $totalData = count($dataset);
+        $entropy = $this->calculateEntropy($dataset);
+        
+        // Membagi dataset berdasarkan nilai atribut
+        $attributeValues = [];
+        foreach ($dataset as $data) {
+            $value = $this->getAttributeCategory($data, $attribute);
+            if (!isset($attributeValues[$value])) {
+                $attributeValues[$value] = [];
+            }
+            $attributeValues[$value][] = $data;
+        }
+        
+        // Menghitung entropy untuk setiap nilai atribut
+        $entropySum = 0;
+        foreach ($attributeValues as $value => $subDataset) {
+            $subEntropy = $this->calculateEntropy($subDataset);
+            $probability = count($subDataset) / $totalData;
+            $entropySum += $probability * $subEntropy;
+        }
+        
+        // Menghitung information gain
+        $gain = $entropy - $entropySum;
+        
+        return $gain;
+    }
+    
+    /**
+     * Mendapatkan kategori untuk atribut tertentu
+     * 
+     * @param array $data Data pasien
+     * @param string $attribute Nama atribut
+     * @return string Kategori atribut
+     */
+    public function getAttributeCategory($data, $attribute) {
+        switch ($attribute) {
+            case 'tekanan_darah':
+                if ($data['tekanan_sistolik'] >= 130) {
+                    return 'Tinggi';
+                } elseif ($data['tekanan_sistolik'] >= 110) {
+                    return 'Normal';
+                } else {
+                    return 'Rendah';
+                }
+                break;
+                
+            case 'detak_jantung':
+                if ($data['detak_jantung'] >= 100) {
+                    return 'Tinggi';
+                } elseif ($data['detak_jantung'] >= 60) {
+                    return 'Normal';
+                } else {
+                    return 'Rendah';
+                }
+                break;
+                
+            case 'suhu_tubuh':
+                if ($data['suhu_tubuh'] >= 38.0) {
+                    return 'Tinggi';
+                } elseif ($data['suhu_tubuh'] >= 36.5) {
+                    return 'Normal';
+                } else {
+                    return 'Rendah';
+                }
+                break;
+                
+            default:
+                return 'Unknown';
+        }
+    }
+    
+    /**
+     * Mendiagnosis pasien berdasarkan pohon keputusan yang telah dibuat
+     * 
+     * @param float $tekananSistolik Tekanan darah sistolik
+     * @param int $detakJantung Detak jantung (bpm)
+     * @param float $suhuTubuh Suhu tubuh (°C)
+     * @return string Diagnosis pasien
+     */
+    public function diagnose($tekananSistolik, $detakJantung, $suhuTubuh) {
+        // Implementasi pohon keputusan C4.5 yang telah dibuat
+        
+        // Node root: Tekanan Darah
+        if ($tekananSistolik >= 130) {
+            // Tekanan Darah Tinggi
+            // Node cabang: Suhu Tubuh
+            if ($suhuTubuh > 38.0) {
+                return 'Heat Exhaustion';
+            } else if ($suhuTubuh == 38.0) {
+                return 'Hipertensi, Demam';
+            } else {
+                return 'Normal';
+            }
+        } elseif ($tekananSistolik >= 110) {
+            // Tekanan Darah Normal
+            // Node cabang: Detak Jantung
+            if ($detakJantung >= 100) {
+                return 'Takikardia';
+            } else {
+                return 'Sehat';
+            }
+        } else {
+            // Tekanan Darah Rendah
+            // Node cabang: Detak Jantung
+            if ($detakJantung < 60) {
+                return 'Bradikardia';
+            } else {
+                return 'Hipotensi';
+            }
+        }
+    }
+    
+    /**
+     * Menghitung semua information gain dan membangun pohon keputusan
+     * 
+     * @return array Hasil perhitungan information gain
+     */
+    public function calculateAllGains() {
+        $gains = [
+            'tekanan_darah' => $this->calculateGain($this->trainingData, 'tekanan_darah'),
+            'detak_jantung' => $this->calculateGain($this->trainingData, 'detak_jantung'),
+            'suhu_tubuh' => $this->calculateGain($this->trainingData, 'suhu_tubuh')
+        ];
+        
+        return $gains;
+    }
+    
+    /**
+     * Mendapatkan data training
+     * 
+     * @return array Data training
+     */
+    public function getTrainingData() {
+        return $this->trainingData;
+    }
+}
+?>
